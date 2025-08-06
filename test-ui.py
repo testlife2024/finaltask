@@ -57,11 +57,11 @@ def test_content_page():
     WB.WB(driver).wibes()
     WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'/html/body/div[2]/div[2]/aside/section/nav/ul/li[2]/button')))
     requests = 'еда'
-    driver.find_element(By.CSS_SELECTOR,'body > div.layout_layout__bQuUa > div.layout_layoutContent__aBhHY > aside > section > nav > ul > li:nth-child(2) > button').click()
-    driver.find_element(By.XPATH,'//*[@id="radix-:R2afekva:"]/div/div[1]/div[2]/div/input').send_keys(requests)
-    driver.find_element(By.XPATH,'//*[@id="radix-:Rifekva:"]/div/div[1]/div[2]/div/input').send_keys(Keys.ENTER)
-    WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.CSS_SELECTOR,'body > div.layout > div > div.SearchLayout_pills__dmJ3Q > div > a.SearchPills_pill__RiOen.SearchPills_activePill___xpgX')))
-    element = driver.find_element(By.CSS_SELECTOR,'body > div.layout > div > div.SearchLayout_pills__dmJ3Q > div > a.SearchPills_pill__RiOen.SearchPills_activePill___xpgX')
+    driver.find_element(By.XPATH,"//button[contains(., 'Поиск')]").click()
+    driver.find_element(By.XPATH,"//input[@placeholder='Поиск']").send_keys(requests)
+    driver.find_element(By.XPATH,"//input[@placeholder='Поиск']").send_keys(Keys.ENTER)
+    driver.implicitly_wait(5)
+    element = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[2]/div[1]/div/a[1]")
     assert element.is_displayed() == True
     driver.quit()
 
@@ -83,6 +83,7 @@ def test_add_to_cart():
         result = driver.find_element(By.XPATH,'/html/body/div[1]/main/div[2]/div[3]/div[4]/div/div[1]/form/div[1]/div[1]/div[2]/div/div[1]/div').text
         assert result == '1 товар'
     driver.quit()
+
 
 
 
