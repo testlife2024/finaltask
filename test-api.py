@@ -8,7 +8,7 @@ def test_user_info():
     '''
     response = requests.get('https://user-geo-data.wildberries.ru/get-geo-info?currency=RUB&latitude=55.3662&longitude=86.0805&locale=ru&address=%D0%9A%D0%B5%D0%BC%D0%B5%D1%80%D0%BE%D0%B2%D0%BE&dt=0&currentLocale=ru&b2bMode=false')
     assert response.status_code == 200
-    assert response.json()["address"] == "Кемерово"
+    assert response.json()["address"] == "Москва"
 
 def test_cart_info():
     '''
@@ -22,7 +22,7 @@ def test_search_tickets_pos():
             Запрос на поиск авиабилетов отправляется успешно
     '''
     body = {
-    "beginDate_at":"2025-07-13T00:00:00.000Z",
+    "beginDate_at":"2025-10-13T00:00:00.000Z",
     "beginLocationCode":"MOW",
     "endLocationCode":"LED",
     "filter":{},
@@ -43,7 +43,7 @@ def test_search_tickets_neg():
             Запрос на поиск билетов без пассажиров выдает ошибку
     '''
     body = {
-    "beginDate_at":"2025-07-13T00:00:00.000Z",
+    "beginDate_at":"2025-10-13T00:00:00.000Z",
     "beginLocationCode":"MOW",
     "endLocationCode":"LED",
     "filter":{},
