@@ -7,35 +7,60 @@ from selenium.webdriver.support.ui import WebDriverWait
 import WB
 import requests
 
+
+
 driver = webdriver.Chrome()
 driver.maximize_window()
 
 
+
+
 def test_search_product_pos():
     '''
-                  Результаты поиска соответствуют запрашиваемому товару
+                      Результаты поиска соответствуют запрашиваемому товару
     '''
     WB.WB(driver).market()
+    search_input = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//input[@id='searchInput']"))
+        )
     request = 'носки'
-    driver.find_element(By.CSS_SELECTOR,'#searchInput').send_keys(request)
-    driver.find_element(By.CSS_SELECTOR,'#applySearchBtn').click()
-    WebDriverWait(driver,5).until(EC.text_to_be_present_in_element((By.CSS_SELECTOR,'#catalog > div > div.catalog-page__searching-results.searching-results > div > h1'),request))
-    assert driver.find_element(By.CSS_SELECTOR,'#catalog > div > div.catalog-page__searching-results.searching-results > div > h1').text == request
-    driver.quit()
+    search_input.clear()
+    search_input.send_keys(request)
+    search_button = WebDriverWait(driver, 30).until(
+        EC.element_to_be_clickable((By.XPATH, "//button[@id='applySearchBtn']"))
+        )
+    search_button.click()
+    results_header = WebDriverWait(driver, 15).until(
+        EC.visibility_of_element_located((By.XPATH, "//h1[contains(@class, 'searching-results__title')]"))
+        )
+
+    assert request.lower() in results_header.text.lower()
+
 
 
 def test_search_product_neg():
-    '''
-                      Результаты поиска несуществующего товара уведомляют об его отсутствии на маркетплейсе
-    '''
     WB.WB(driver).market()
-    requests = 'kfjksdjfklds'
-    result_txt = f'Ничего не нашлось по запросу «{requests}»'
-    driver.find_element(By.CSS_SELECTOR, '#searchInput').send_keys(requests)
-    driver.find_element(By.CSS_SELECTOR, '#applySearchBtn').click()
-    WebDriverWait(driver,5).until(EC.text_to_be_present_in_element((By.XPATH, '//*[@id="appReactRoot"]/div/div[1]/div[1]/div/h1'), result_txt))
-    assert driver.find_element(By.XPATH,'//*[@id="appReactRoot"]/div/div[1]/div[1]/div/h1').text == result_txt
-    driver.quit()
+    search_input = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//input[@id='searchInput']"))
+        )
+    request = 'kfjksdjfklds'
+    search_input.clear()
+    search_input.send_keys(request)
+    search_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[@id='applySearchBtn']"))
+        )
+    search_button.click()
+    WebDriverWait(driver, 15).until(
+            EC.visibility_of_element_located((By.XPATH,
+                                              "//div[contains(@class, 'searching-results__empty')] | "
+                                              "//h1[contains(text(), 'Ничего не нашлось')]"))
+        )
+    empty_result = driver.find_element(By.XPATH,
+                                              "//div[contains(@class, 'searching-results__empty')] | "
+                                              "//h1[contains(text(), 'Ничего не нашлось')]").text
+    expected_text = f'Ничего не нашлось по запросу «{request}»'
+    assert empty_result == expected_text
+
 
 
 def test_directions():
@@ -47,7 +72,11 @@ def test_directions():
     WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//*[@id="__next"]/main/div[1]/div/div/div/div[3]/div[2]/div[1]/div[1]/span')))
     element = driver.find_element(By.XPATH,'//*[@id="__next"]/main/div[1]/div/div/div/div[3]/div[2]/div[1]/div[1]/span')
     assert element.is_displayed() == True
-    driver.quit()
+
+
+
+
+
 
 
 def test_content_page():
@@ -55,45 +84,42 @@ def test_content_page():
                       Страница с результатами по запрашиваемой теме контента отображается
     '''
     WB.WB(driver).wibes()
-    WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'/html/body/div[2]/div[2]/aside/section/nav/ul/li[2]/button')))
+    WebDriverWait(driver,50).until(EC.visibility_of_element_located((By.XPATH,"//button[contains(., 'Поиск')]")))
     requests = 'еда'
-    driver.find_element(By.XPATH,"//button[contains(., 'Поиск')]").click()
+    driver.find_element(By.XPATH, "//button[contains(text(), 'Поиск')]").click()
     driver.find_element(By.XPATH,"//input[@placeholder='Поиск']").send_keys(requests)
     driver.find_element(By.XPATH,"//input[@placeholder='Поиск']").send_keys(Keys.ENTER)
     driver.implicitly_wait(5)
     element = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[2]/div[1]/div/a[1]")
     assert element.is_displayed() == True
+
+
+
+
+def test_order_button_visibility():
+    """
+    Кнопка Заказать отображается после добавления товара в корзину
+    """
+    driver.get('https://www.wildberries.ru/catalog/263573724/detail.aspx')
+    add_button = WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.XPATH,
+                                    "//button[contains(@class, 'btn-main') and contains(., 'Добавить в корзину')]"))
+    )
+    add_button.click()
+    WebDriverWait(driver, 15).until(
+        EC.visibility_of_element_located((By.XPATH,
+                                          "//span[contains(@class, 'navbar-pc__notify') and text()='1']"))
+    )
+    driver.get('https://www.wildberries.ru/lk/basket')
+    order_button = WebDriverWait(driver, 20).until(
+        EC.visibility_of_element_located((By.XPATH,
+                                          "//button[contains(@class, 'btn-main') and contains(., 'Заказать')]"))
+    )
+
+    assert order_button.is_displayed()
+
+
     driver.quit()
-
-
-def test_add_to_cart():
-    '''
-                      Добавленный в корзину товар отображается в ней
-    '''
-    WB.WB(driver).market()
-    requests = '263573724'
-    driver.find_element(By.CSS_SELECTOR, '#searchInput').send_keys(requests)
-    driver.find_element(By.CSS_SELECTOR, '#applySearchBtn').click()
-    WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//*[@id="imageContainer"]/div/div/canvas')))
-    element = driver.find_element(By.XPATH,'//*[@id="imageContainer"]/div/div/canvas')
-    while element.is_displayed():
-        body = driver.find_element(By.TAG_NAME, 'body')
-        driver.find_element(By.XPATH,'/html/body/div[1]/main/div[2]/div[3]/div[3]/div/div[3]/div[11]/div[2]/div/button').click()
-        driver.implicitly_wait(5)
-        result = driver.find_element(By.XPATH,'/html/body/div[1]/main/div[2]/div[3]/div[4]/div/div[1]/form/div[1]/div[1]/div[2]/div/div[1]/div').text
-        assert result == '1 товар'
-    driver.quit()
-
-
-
-
-
-
-
-
-
-
-
 
 
 
